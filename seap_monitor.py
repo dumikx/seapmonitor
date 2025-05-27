@@ -28,8 +28,10 @@ def load_last_seen_ids():
     return set()
 
 def save_last_seen_ids(ids):
+    existing = load_last_seen_ids()
+    all_ids = existing.union(ids)
     with open(LAST_IDS_PATH, "w") as f:
-        f.write("\n".join(ids))
+        f.write("\n".join(sorted(all_ids)))
 
 def send_telegram_message(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
