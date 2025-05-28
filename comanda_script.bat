@@ -1,3 +1,3 @@
 @echo off
-cd "D:\Seap Monitor Script"
+cd "D:\SeapMonitor"
 python seap_monitor.py
