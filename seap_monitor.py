@@ -9,6 +9,10 @@ import json
 import time
 import os
 import requests
+# Logging setup
+import logging
+logging.basicConfig(filename='seap_monitor.log', level=logging.INFO, format='%(asctime)s - %(message)s')
+
 
 CONFIG_PATH = "config.json"
 LAST_IDS_PATH = "last_seen_ids.txt"
@@ -49,7 +53,7 @@ def extract_current_notice_ids(driver):
                 continue
     return ids
 
-def process_results(driver, last_seen_ids, current_ids, found_new, ignored_initial=None):
+def process_results(driver, last_seen_ids, current_ids, found_new, ignored_initial=None, source_keyword=None):
     blocks = driver.find_elements(By.CSS_SELECTOR, "div.col-md-4")
 
     for block in blocks:
@@ -73,11 +77,12 @@ def process_results(driver, last_seen_ids, current_ids, found_new, ignored_initi
             found_new[0] = True
             current_ids.add(notice_number)
 
-            message = f"🔔 <b>Anunț nou detectat</b>\n<b>Număr anunț:</b> {notice_number}"
+            message = f"🔔 <b>Anunț nou detectat</b>\n<b>Număr anunț:</b> {notice_number}\n<b>Cuvânt cheie:</b> {source_keyword}"
             send_telegram_message(message)
 
             if DEBUG:
-                print(f"✅ Notificat: {notice_number}")
+                print(f"✅ Notificat: {notice_number} (găsit cu: '{source_keyword}')")
+                logging.info(f"✅ Notificat: {notice_number} (găsit cu: '{source_keyword}')")
 
         except Exception as e:
             if DEBUG:
@@ -142,7 +147,7 @@ def main():
         # 1️⃣ Căutare după cuvinte cheie
         for keyword in keywords:
             perform_search(driver, "input[ng-model='vm.filter.contractObject']", keyword, wait_time=5)
-            process_results(driver, last_seen_ids, current_ids, found_new, ignored_initial=ignored_initial)
+            process_results(driver, last_seen_ids, current_ids, found_new, ignored_initial=ignored_initial, source_keyword=keyword)
 
         # curățare câmp după cuvinte cheie
         clear_input(driver, "input[ng-model='vm.filter.contractObject']")
@@ -151,7 +156,7 @@ def main():
         # 2️⃣ Căutare după instituții
         for institution in institutions:
             perform_search(driver, "input[aria-owns='filterCaDdl_listbox']", institution, wait_time=7, is_institution=True)
-            process_results(driver, last_seen_ids, current_ids, found_new, ignored_initial=ignored_initial)
+            process_results(driver, last_seen_ids, current_ids, found_new, ignored_initial=ignored_initial, source_keyword=keyword)
 
         if not found_new[0]:
             send_telegram_message("📭 Niciun anunț nou găsit după filtrele setate.")
