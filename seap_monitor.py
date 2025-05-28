@@ -119,6 +119,7 @@ def clear_input(driver, input_selector):
     except Exception as e:
         print(f"Eroare la golirea câmpului: {e}")
 
+
 def main():
     config = load_config()
     last_seen_ids = load_last_seen_ids()
@@ -133,19 +134,23 @@ def main():
 
     try:
         driver.get(SEAP_URL)
-        time.sleep(10)
+        time.sleep(15)  # așteptare după deschiderea browserului
 
         # extrage anunțuri vizibile la încărcare (fără căutare)
         ignored_initial = extract_current_notice_ids(driver)
 
-        for institution in institutions:
-            perform_search(driver, "input[aria-owns='filterCaDdl_listbox']", institution, wait_time=7, is_institution=True)
-            process_results(driver, last_seen_ids, current_ids, found_new)
-
-        clear_input(driver, "input[aria-owns='filterCaDdl_listbox']")
-
+        # 1️⃣ Căutare după cuvinte cheie
         for keyword in keywords:
             perform_search(driver, "input[ng-model='vm.filter.contractObject']", keyword, wait_time=5)
+            process_results(driver, last_seen_ids, current_ids, found_new, ignored_initial=ignored_initial)
+
+        # curățare câmp după cuvinte cheie
+        clear_input(driver, "input[ng-model='vm.filter.contractObject']")
+        time.sleep(10)
+
+        # 2️⃣ Căutare după instituții
+        for institution in institutions:
+            perform_search(driver, "input[aria-owns='filterCaDdl_listbox']", institution, wait_time=7, is_institution=True)
             process_results(driver, last_seen_ids, current_ids, found_new, ignored_initial=ignored_initial)
 
         if not found_new[0]:
@@ -154,6 +159,7 @@ def main():
 
     finally:
         driver.quit()
+
 
 if __name__ == "__main__":
     main()
