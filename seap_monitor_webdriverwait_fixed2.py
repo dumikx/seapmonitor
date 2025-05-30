@@ -156,21 +156,17 @@ def perform_search(driver, input_selector, text, wait_time, is_institution=False
         time.sleep(0.5)
 
         if is_institution:
-        try:
-            # Așteaptă ca overlay-ul să dispară
-            WebDriverWait(driver, 15).until(
-                EC.invisibility_of_element_located((By.CSS_SELECTOR, "div.block-ui-overlay"))
-            )
+            try:
+                # Așteaptă ca overlay-ul să dispară
+                WebDriverWait(driver, 15).until(
+                    EC.invisibility_of_element_located((By.CSS_SELECTOR, "div.block-ui-overlay"))
+                )
 
-            # Așteaptă apariția dropdown-ului și click pe primul element
-            first_option = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, "#filterCaDdl_listbox li"))
-            )
-            first_option.click()
-            time.sleep(0.5)
-        except Exception as e:
-            print(f"⚠️ Nu s-a putut selecta instituția din dropdown: {e}")
-            return
+                # Așteaptă apariția dropdown-ului și click pe primul element
+                first_option = WebDriverWait(driver, 15).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "#filterCaDdl_listbox li"))
+                )
+                first_option.click()
                 time.sleep(0.5)
             except Exception as e:
                 print(f"⚠️ Nu s-a putut selecta instituția din dropdown: {e}")
